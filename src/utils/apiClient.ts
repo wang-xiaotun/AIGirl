@@ -5,12 +5,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // 1. 配置参数
 // ----------------------------------------------------
 
-// 此处需要填写对应 Supabase 后台的真实 Project URL 
-const SUPABASE_PROJECT_URL = 'https://bdzzbbqqcorlykdytztx.supabase.co';
+// 此处从环境变量读取，以保证安全。Vercel 部署时需要在后台配置这些变量。
+// 注意：Expo 网页版要求环境变量必须以 EXPO_PUBLIC_ 开头。
+const SUPABASE_PROJECT_URL = process.env.EXPO_PUBLIC_SUPABASE_URL || 'https://bdzzbbqqcorlykdytztx.supabase.co';
 const BASE_URL = `${SUPABASE_PROJECT_URL}/functions/v1`;
 
-// 与服务端约定好的对称加密密钥（对应 Edge Functions crypto.ts 中的密钥）
-const SECRET_KEY = 'AIGirl_V2_SuperSecretKey_2026_!@#';
+// 与服务端约定好的对称加密密钥
+const SECRET_KEY = process.env.EXPO_PUBLIC_API_SECRET_KEY || 'AIGirl_V2_SuperSecretKey_2026_!@#';
 
 // ----------------------------------------------------
 // 2. 加解密工具函数
