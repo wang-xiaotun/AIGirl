@@ -6,18 +6,13 @@ import {
     FlatList,
     Image,
     TouchableOpacity,
-    Dimensions
+    useWindowDimensions
 } from 'react-native';
 import { getGirlfriends, getGirlAvatar } from '../data/girlfriends';
 import { GF } from '../types';
 import { Lock } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { THEME } from '../constants/theme';
-
-
-const { width } = Dimensions.get('window');
-const COLUMN_COUNT = 2;
-const ITEM_WIDTH = (width - 40) / COLUMN_COUNT;
 
 interface GFListProps {
     userModel: 'deepseek' | 'grok';
@@ -27,19 +22,27 @@ interface GFListProps {
 }
 
 export default function GFListScreen({ userModel, onSelectGF, isAllUnlocked, onUnlockRequest }: GFListProps) {
+    const { width, height } = useWindowDimensions();
+
+    // 响应式布局：宽度大于高度时（网页宽屏）显示 4 列，否则 2 列
+    const numColumns = width > height ? 4 : 2;
+
+    // 计算屏幕左右内边距(30) + 每个卡片左右外边距(10 * 列数)
+    const itemWidth = (width - 30 - (10 * numColumns)) / numColumns;
+
     const renderItem = ({ item, index }: { item: GF, index: number }) => {
         // 默认 ID=1 (index 0) 解锁，其他受 isAllUnlocked 控制
         const isLocked = index !== 0 && !isAllUnlocked;
 
         return (
             <TouchableOpacity
-                style={styles.card}
+                style={[styles.card, { width: itemWidth }]}
                 onPress={() => isLocked ? onUnlockRequest() : onSelectGF(item)}
                 activeOpacity={0.8}
             >
                 <Image
                     source={getGirlAvatar(userModel, item.avatar)}
-                    style={styles.avatar}
+                    style={[styles.avatar, { height: itemWidth * 1.3 }]}
                     resizeMode="cover"
                 />
                 {isLocked && (
@@ -69,10 +72,11 @@ export default function GFListScreen({ userModel, onSelectGF, isAllUnlocked, onU
 
 
             <FlatList
+                key={numColumns}
                 data={getGirlfriends(userModel)}
                 renderItem={renderItem}
                 keyExtractor={(item) => item.id}
-                numColumns={COLUMN_COUNT}
+                numColumns={numColumns}
                 contentContainerStyle={styles.listContent}
                 showsVerticalScrollIndicator={false}
             />
@@ -88,7 +92,6 @@ const styles = StyleSheet.create({
         padding: 15,
     },
     card: {
-        width: ITEM_WIDTH,
         backgroundColor: THEME.COLORS.SURFACE,
         borderRadius: 20,
         marginBottom: 15,
@@ -102,7 +105,6 @@ const styles = StyleSheet.create({
     },
     avatar: {
         width: '100%',
-        height: ITEM_WIDTH * 1.3,
     },
     lockOverlay: {
         ...StyleSheet.absoluteFillObject,
