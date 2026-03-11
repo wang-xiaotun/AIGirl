@@ -18,7 +18,7 @@ import { storage } from './src/utils/storage';
 import { User, GF } from './src/types';
 import GlobalHeader from './src/components/GlobalHeader';
 import LoadingScreen from './src/components/LoadingScreen';
-import { apiInitUser, apiCreateOrder } from './src/utils/apiClient';
+import { apiInitUser, apiCreateOrder, getAppChannel } from './src/utils/apiClient';
 import GFListScreen from './src/screens/GFListScreen';
 import ChatRoom from './src/screens/ChatRoom';
 import StoryGenerator from './src/screens/StoryGenerator';
@@ -61,7 +61,8 @@ export default function App() {
       const savedUser = await storage.getItem<User>('user_data');
       const localUserId = savedUser?.userId || '';
 
-      const res = await apiInitUser(localUserId);
+      const channel = await getAppChannel();
+      const res = await apiInitUser(localUserId, channel);
       if (res.code === 0) {
         const serverData = res.data;
         const newUser: User = {

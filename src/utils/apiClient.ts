@@ -1,5 +1,31 @@
 import CryptoJS from 'crypto-js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform, NativeModules } from 'react-native';
+
+export const getAppChannel = async (): Promise<string> => {
+    if (Platform.OS === 'web') {
+        if (typeof window !== 'undefined') {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const c = urlParams.get('c');
+                if (c) return c;
+            } catch (ignored) { }
+        }
+        return '0';
+    } else if (Platform.OS === 'android') {
+        const ChannelModule = NativeModules ? NativeModules.ChannelModule : null;
+        if (ChannelModule) {
+            try {
+                const channel = await ChannelModule.getChannel();
+                return channel || '0';
+            } catch (e) {
+                return '0';
+            }
+        }
+        return '0';
+    }
+    return '0';
+};
 
 // ----------------------------------------------------
 // 1. 配置参数
@@ -136,9 +162,9 @@ export const requestApi = async (endpoint: string, options: RequestOptions = {})
 /**
  * App 启动初始化获取分配的 UUID、积分及模型设置
  */
-export const apiInitUser = async (localUserId: string) => {
+export const apiInitUser = async (localUserId: string, channel: string = '0') => {
     return requestApi('/init', {
-        payload: { user_id: localUserId },
+        payload: { user_id: localUserId, channel },
         timeout: 10000 // Init 接口要求 10s 超时
     });
 };
