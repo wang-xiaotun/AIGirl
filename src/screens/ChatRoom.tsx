@@ -11,14 +11,13 @@ import {
     ActivityIndicator,
     Alert,
     Image,
-    Dimensions,
+    useWindowDimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Send, ChevronLeft } from 'lucide-react-native';
 import { GF, Message } from '../types';
 import { apiChat } from '../utils/apiClient';
 import { storage } from '../utils/storage';
-import { LinearGradient } from 'expo-linear-gradient';
 import { THEME } from '../constants/theme';
 import { getGirlBg } from '../data/girlfriends';
 
@@ -121,19 +120,44 @@ export default function ChatRoom({
     );
 
     const bgSource = getGirlBg(user.currentModel, gf.id);
-    const { height: screenHeight, width: screenWidth } = Dimensions.get('window');
+    // useWindowDimensions 会在键盘弹出/收起时实时更新，避免背景留白
+    const { height: screenHeight, width: screenWidth } = useWindowDimensions();
+    // 横屏时（宽 > 高）：图片高度完整显示，宽度等比缩放；竖屏时保持 cover
+    const isLandscape = screenWidth > screenHeight;
 
     return (
         <View style={styles.container}>
             {/* 背景图片：使用固定高度防止键盘弹起时缩放 */}
             {bgSource && (
-                <View style={{ position: 'absolute', top: 0, left: 0, width: screenWidth, height: screenHeight }}>
-                    <Image
-                        source={bgSource}
-                        style={{ width: '100%', height: '100%' }}
-                        resizeMode="cover"
-                    />
-                </View>
+                isLandscape ? (
+                    // 横屏：三层叠加——底图 cover（颜色自动匹配）+ 遮罩 + 主图 contain
+                    <View style={{ position: 'absolute', top: 0, left: 0, width: screenWidth, height: screenHeight }}>
+                        {/* 第一层：同一张图 cover 铺满，边缘颜色天然匹配 */}
+                        <Image
+                            source={bgSource}
+                            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
+                            resizeMode="cover"
+                            blurRadius={18}
+                        />
+                        {/* 第二层：深色半透明遮罩，避免底图喧宾夺主 */}
+                        <View style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.38)' }} />
+                        {/* 第三层：主图 contain，高度完整居中清晰显示 */}
+                        <Image
+                            source={bgSource}
+                            style={{ height: '100%', width: undefined, aspectRatio: undefined, alignSelf: 'center' }}
+                            resizeMode="contain"
+                        />
+                    </View>
+                ) : (
+                    // 竖屏：保持原有 cover 全屏覆盖
+                    <View style={{ position: 'absolute', top: 0, left: 0, width: screenWidth, height: screenHeight }}>
+                        <Image
+                            source={bgSource}
+                            style={{ width: '100%', height: '100%' }}
+                            resizeMode="cover"
+                        />
+                    </View>
+                )
             )}
 
             {/*

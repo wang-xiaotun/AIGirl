@@ -25,7 +25,7 @@ export default function GFListScreen({ userModel, onSelectGF, isAllUnlocked, onU
     const { width, height } = useWindowDimensions();
 
     // 响应式布局：宽度大于高度时（网页宽屏）显示 4 列，否则 2 列
-    const numColumns = width > height ? 4 : 2;
+    const numColumns = width > height ? 5 : 2;
 
     // 计算屏幕左右内边距(30) + 每个卡片左右外边距(10 * 列数)
     const itemWidth = (width - 30 - (10 * numColumns)) / numColumns;
