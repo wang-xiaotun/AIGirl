@@ -24,11 +24,11 @@ function IOSGuide() {
             <View style={styles.stepList}>
                 <View style={styles.stepRow}>
                     <View style={styles.stepNum}><Text style={styles.stepNumText}>1</Text></View>
-                    <Text style={styles.stepText}>点击底部工具栏中间的 <Text style={styles.highlight}>分享</Text> 图标（方块加箭头）</Text>
+                    <Text style={styles.stepText}>点击底部工具栏中的 <Text style={styles.highlight}>共享</Text> 图标（方块加箭头）</Text>
                 </View>
                 <View style={styles.stepRow}>
                     <View style={styles.stepNum}><Text style={styles.stepNumText}>2</Text></View>
-                    <Text style={styles.stepText}>在弹出菜单中向下滑动，找到并点击 <Text style={styles.highlight}>「添加到主屏幕」</Text></Text>
+                    <Text style={styles.stepText}>在弹出菜单中向下滑动(查看更多)，找到并点击 <Text style={styles.highlight}>「添加到主屏幕」</Text></Text>
                 </View>
                 <View style={styles.stepRow}>
                     <View style={styles.stepNum}><Text style={styles.stepNumText}>3</Text></View>
