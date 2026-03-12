@@ -48,6 +48,7 @@ export default function GlobalHeader({
                     <Text style={styles.shopText}>商店</Text>
                 </TouchableOpacity>
 
+                {/* 测试清空按钮（已隐藏）
                 <TouchableOpacity
                     onPress={onClearData}
                     style={styles.clearButton}
@@ -56,6 +57,7 @@ export default function GlobalHeader({
                     <Trash2 size={18} color="#FF4D4D" />
                     <Text style={styles.clearText}>测试清空</Text>
                 </TouchableOpacity>
+                */}
             </View>
         </View>
     );
