@@ -131,29 +131,29 @@ export default function ChatRoom({
             {bgSource && (
                 isLandscape ? (
                     // 横屏：三层叠加——底图 cover（颜色自动匹配）+ 遮罩 + 主图 contain
-                    <View style={{ position: 'absolute', top: 0, left: 0, width: screenWidth, height: screenHeight }}>
+                    <View style={StyleSheet.absoluteFill}>
                         {/* 第一层：同一张图 cover 铺满，边缘颜色天然匹配 */}
                         <Image
                             source={bgSource}
-                            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
+                            style={StyleSheet.absoluteFill}
                             resizeMode="cover"
                             blurRadius={18}
                         />
                         {/* 第二层：深色半透明遮罩，避免底图喧宾夺主 */}
-                        <View style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.38)' }} />
+                        <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.38)' }]} />
                         {/* 第三层：主图 contain，高度完整居中清晰显示 */}
                         <Image
                             source={bgSource}
-                            style={{ height: '100%', width: undefined, aspectRatio: undefined, alignSelf: 'center' }}
+                            style={{ flex: 1 }}
                             resizeMode="contain"
                         />
                     </View>
                 ) : (
                     // 竖屏：保持原有 cover 全屏覆盖
-                    <View style={{ position: 'absolute', top: 0, left: 0, width: screenWidth, height: screenHeight }}>
+                    <View style={StyleSheet.absoluteFill}>
                         <Image
                             source={bgSource}
-                            style={{ width: '100%', height: '100%' }}
+                            style={{ flex: 1 }}
                             resizeMode="cover"
                         />
                     </View>
