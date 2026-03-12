@@ -25,6 +25,9 @@ import StoryGenerator from './src/screens/StoryGenerator';
 import { Heart, BookOpen, Crown, User as UserIcon } from 'lucide-react-native';
 import { THEME } from './src/constants/theme';
 import appConfig from './app.json';
+import AddToHomeScreen from './src/components/AddToHomeScreen';
+import { getPlatformType, isMobileBrowser } from './src/utils/platformUtils';
+import { STORAGE_KEYS } from './src/constants/keys';
 
 
 const INITIAL_USER: User = {
@@ -46,6 +49,7 @@ export default function App() {
   const [showShopModal, setShowShopModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showAgreementModal, setShowAgreementModal] = useState(false);
+  const [showPwaGuide, setShowPwaGuide] = useState(false);
 
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessingPay, setIsProcessingPay] = useState(false);
@@ -202,15 +206,25 @@ export default function App() {
   };
 
   const updatePoints = async (pointsUsed: number, remainFreeChats?: number, remainFreeStories?: number) => {
+    const newChatCount = user.local_chat_count + (activeTab === 'girls' ? 1 : 0);
     const newUser = {
       ...user,
       points: Math.max(0, user.points - pointsUsed),
       free_chat_count: remainFreeChats !== undefined ? remainFreeChats : user.free_chat_count,
       free_story_count: remainFreeStories !== undefined ? remainFreeStories : user.free_story_count,
-      local_chat_count: user.local_chat_count + (activeTab === 'girls' ? 1 : 0),
+      local_chat_count: newChatCount,
       local_story_count: user.local_story_count + (activeTab === 'story' ? 1 : 0)
     };
     await saveUserData(newUser);
+
+    // 手机浏览器新用户：第2次聊天结束后，自动弹出 PWA 引导（只弹一次）
+    if (activeTab === 'girls' && newChatCount === 2 && isMobileBrowser()) {
+      const alreadyShown = await storage.getItem<boolean>(STORAGE_KEYS.PWA_GUIDE_SHOWN);
+      if (!alreadyShown) {
+        await storage.setItem(STORAGE_KEYS.PWA_GUIDE_SHOWN, true);
+        setShowPwaGuide(true);
+      }
+    }
   };
 
   if (isLoading) {
@@ -376,10 +390,23 @@ export default function App() {
                 <Text style={[styles.modalButtonText, { color: '#FF4D4D' }]}>清空本地聊天记录</Text>
               </TouchableOpacity>
 
+              {/* 仅浏览器（非 APK）显示"添加桌面快捷方式"入口 */}
+              {getPlatformType() !== 'native-android' && getPlatformType() !== 'native-ios' && (
+                <TouchableOpacity
+                  style={[styles.modalButton, { backgroundColor: '#F0F4FF', marginTop: 10 }]}
+                  onPress={() => { setShowProfileModal(false); setShowPwaGuide(true); }}
+                >
+                  <Text style={[styles.modalButtonText, { color: '#4F6EF7' }]}>📲 添加桌面快捷方式</Text>
+                </TouchableOpacity>
+              )}
+
               <Text style={styles.versionText}>Version {appConfig.expo.version}</Text>
             </View>
           </View>
         </Modal>
+
+        {/* PWA 添加桌面快捷方式引导弹框 */}
+        <AddToHomeScreen visible={showPwaGuide} onClose={() => setShowPwaGuide(false)} />
 
         {/* User Agreement Modal */}
         <Modal visible={showAgreementModal} animationType="fade" transparent>

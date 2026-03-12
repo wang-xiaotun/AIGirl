@@ -3,4 +3,5 @@ export const STORAGE_KEYS = {
     CHAT_HISTORY_PREFIX: 'chat_history_',
     STORY_HISTORY: 'story_history',
     IS_LOGGED_IN: 'is_logged_in',
+    PWA_GUIDE_SHOWN: 'pwa_guide_shown',
 };
