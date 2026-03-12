@@ -128,37 +128,32 @@ export default function ChatRoom({
     return (
         <View style={styles.container}>
             {/* 背景图片：使用固定高度防止键盘弹起时缩放 */}
-            {bgSource && (
-                isLandscape ? (
+            {bgSource && (() => {
+                // Web 用 position:fixed，固定在视觉 viewport，防止 Safari 平移时背景消失
+                // Native 用 absoluteFill（position:absolute）
+                const bgContainerStyle: any = Platform.OS === 'web'
+                    ? { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }
+                    : StyleSheet.absoluteFill;
+                // 图片显式拉满容器，避免 absoluteFill 在 web Image 上无法拉伸
+                const imgFill: any = { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' };
+
+                return isLandscape ? (
                     // 横屏：三层叠加——底图 cover（颜色自动匹配）+ 遮罩 + 主图 contain
-                    <View style={StyleSheet.absoluteFill}>
-                        {/* 第一层：同一张图 cover 铺满，边缘颜色天然匹配 */}
-                        <Image
-                            source={bgSource}
-                            style={StyleSheet.absoluteFill}
-                            resizeMode="cover"
-                            blurRadius={18}
-                        />
-                        {/* 第二层：深色半透明遮罩，避免底图喧宾夺主 */}
+                    <View style={bgContainerStyle}>
+                        {/* 第一层：同一张图 cover 铺满模糊，边缘颜色天然匹配 */}
+                        <Image source={bgSource} style={imgFill} resizeMode="cover" blurRadius={18} />
+                        {/* 第二层：深色半透明遮罩 */}
                         <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.38)' }]} />
                         {/* 第三层：主图 contain，高度完整居中清晰显示 */}
-                        <Image
-                            source={bgSource}
-                            style={{ flex: 1 }}
-                            resizeMode="contain"
-                        />
+                        <Image source={bgSource} style={imgFill} resizeMode="contain" />
                     </View>
                 ) : (
-                    // 竖屏：保持原有 cover 全屏覆盖
-                    <View style={StyleSheet.absoluteFill}>
-                        <Image
-                            source={bgSource}
-                            style={{ flex: 1 }}
-                            resizeMode="cover"
-                        />
+                    // 竖屏：cover 全屏覆盖
+                    <View style={bgContainerStyle}>
+                        <Image source={bgSource} style={imgFill} resizeMode="cover" />
                     </View>
-                )
-            )}
+                );
+            })()}
 
             {/*
               KeyboardAvoidingView：仅原生平台启用。
