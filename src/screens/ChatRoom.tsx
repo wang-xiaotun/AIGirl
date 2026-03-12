@@ -161,11 +161,13 @@ export default function ChatRoom({
             )}
 
             {/*
-              KeyboardAvoidingView 包裹所有前景内容。
+              KeyboardAvoidingView：仅原生平台启用。
+              Web 手机浏览器键盘弹出时浏览器已自动压缩 viewport，无需再次避让。
             */}
             <KeyboardAvoidingView
                 style={{ flex: 1 }}
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                enabled={Platform.OS !== 'web'}
             >
                 <View style={[styles.header, { paddingTop: insets.top }]}>
                     <TouchableOpacity onPress={onBack} style={styles.backButton}>
