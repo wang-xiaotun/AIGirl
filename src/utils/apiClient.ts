@@ -172,13 +172,14 @@ export const apiInitUser = async (localUserId: string, channel: string = '0') =>
 /**
  * 虚拟女友双模型聊天接口
  */
-export const apiChat = async (userId: string, girlId: number, message: string, history: any[]) => {
+export const apiChat = async (userId: string, girlId: number, message: string, history: any[], systemContext?: string) => {
     return requestApi('/chat', {
         payload: {
             user_id: userId,
             girl_id: girlId,
             message,
-            history
+            history,
+            system_context: systemContext
         },
         timeout: 30000 // 预留模型思考时间
     });
@@ -203,13 +204,12 @@ export const apiStory = async (userId: string, protagonist: string, plot: string
 /**
  * 充值下单接口
  */
-export const apiCreateOrder = async (userId: string, amount: number, pointsToAdd: number, payType: string = 'alipay') => {
+export const apiCreateOrder = async (userId: string, amount: number, pointsToAdd: number) => {
     return requestApi('/create_order', {
         payload: {
             user_id: userId,
             amount,
-            points_to_add: pointsToAdd,
-            pay_type: payType
+            points_to_add: pointsToAdd
         }
     });
 };

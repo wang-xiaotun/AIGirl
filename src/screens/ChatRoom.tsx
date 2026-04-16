@@ -14,6 +14,7 @@ import {
     useWindowDimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { Send, ChevronLeft } from 'lucide-react-native';
 import { GF, Message } from '../types';
 import { apiChat } from '../utils/apiClient';
@@ -39,6 +40,7 @@ export default function ChatRoom({
     onRequireTopUp,
     onUpdatePoints
 }: ChatRoomProps) {
+    const { t } = useTranslation();
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState('');
     const [isTyping, setIsTyping] = useState(false);
@@ -81,9 +83,19 @@ export default function ChatRoom({
         setInput('');
         setIsTyping(true);
 
+        const systemContext = `Character profile:
+Name: ${gf.name}
+Style: ${gf.style}
+Occupation: ${gf.occupation}
+Measurements: ${gf.measurements}
+Personality: ${gf.personality}
+Intro: ${gf.intro}
+
+Language instruction: You must reply entirely in the user's language (including any actions, thoughts, or stage directions).`;
+
         try {
             // 调用服务端 /chat 接口，传入纯历史记录
-            const res = await apiChat(user.userId, Number(gf.id), userMsg.content, messages);
+            const res = await apiChat(user.userId, Number(gf.id), userMsg.content, messages, systemContext);
 
             if (res.code === 0) {
                 const finalMsgs: Message[] = [...newMessages, { role: 'assistant', content: res.data.reply }];
@@ -184,7 +196,7 @@ export default function ChatRoom({
                 {isTyping && (
                     <View style={styles.typingIndicator}>
                         <ActivityIndicator size="small" color={THEME.COLORS.PRIMARY} />
-                        <Text style={styles.typingText}>{gf.name} 正在输入...</Text>
+                        <Text style={styles.typingText}>{gf.name} {t('generating')}</Text>
                     </View>
                 )}
 
@@ -193,7 +205,7 @@ export default function ChatRoom({
                         style={styles.input}
                         value={input}
                         onChangeText={setInput}
-                        placeholder="和她说点什么..."
+                        placeholder={t('type_message')}
                         placeholderTextColor="#999"
                         multiline
                         returnKeyType="send"

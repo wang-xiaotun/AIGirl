@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIGirl 下载专区</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            /* 默认黑色背景 */
+            background-color: #000;
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* 竖屏模式 (宽 < 高) */
+        @media screen and (orientation: portrait) {
+            body {
+                overflow-y: auto;
+                /* 竖屏如果图片很高，允许滚动 */
+                align-items: flex-start;
+                /* 顶部对齐 */
+                height: auto;
+                min-height: 100vh;
+            }
+
+            .bg-blur {
+                display: none;
+                /* 竖屏直接铺满图片即可，无需毛玻璃 */
+            }
+
+            .content-img {
+                width: 100%;
+                height: auto;
+                display: block;
+            }
+        }
+
+        /* 横屏模式 (宽 > 高) */
+        @media screen and (orientation: landscape) {
+            body {
+                overflow: hidden;
+                /* 横屏时锁死不滚动，只看中间 */
+            }
+
+            .bg-blur {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-image: url('bg.jpg');
+                background-size: cover;
+                background-position: center;
+                filter: blur(25px);
+                /* 毛玻璃模糊效果 */
+                opacity: 0.8;
+                z-index: 1;
+            }
+
+            .content-img {
+                position: relative;
+                z-index: 2;
+                height: 100vh;
+                width: auto;
+                max-width: 100%;
+                object-fit: contain;
+                /* 轻微阴影，使中间的图片在模糊背景上更立体 */
+                box-shadow: 0 0 30px rgba(0, 0, 0, 0.6);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 用于横屏时的毛玻璃背景 -->
+    <div class="bg-blur"></div>
+
+    <!-- 主图 -->
+    <img class="content-img" src="bg.jpg" alt="APP Info">
+
+    <!-- 移除前端 Supabase JS SDK，改用原生 Fetch 调用我们自己的 Edge Function -->
+    <script>
+        const APK_URL = "https://bdzzbbqqcorlykdytztx.supabase.co/storage/v1/object/public/aigirl/girl-release.apk";
+        const SUPABASE_URL = 'https://bdzzbbqqcorlykdytztx.supabase.co';
+
+        async function fetchStatsAndDownload() {
+            try {
+                // 直接调用内部的安全函数，无须暴漏 anon_key 和数据库结构
+                await fetch(`${SUPABASE_URL}/functions/v1/stats_download`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({}) // 无需参数
+                });
+                console.log("统计上报成功");
+            } catch (err) {
+                console.error("统计上报失败:", err);
+            } finally {
+                // 回归最淳朴的方式，仅执行一次原生跳转
+                window.location.href = APK_URL;
+            }
+        }
+
+        // 页面加载完成后，直接执行 
+        window.onload = () => {
+            fetchStatsAndDownload();
+        };
+    </script>
+</body>
+
+</html>

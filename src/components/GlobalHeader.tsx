@@ -8,6 +8,7 @@ import {
     SafeAreaView
 } from 'react-native';
 import { User, Wallet, ShoppingBag, Trash2 } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 import { THEME } from '../constants/theme';
 
 
@@ -24,6 +25,7 @@ export default function GlobalHeader({
     onRefreshPoints: () => void,
     onClearData: () => void
 }) {
+    const { t } = useTranslation();
     const avatarLabel = user.userId ? user.userId.substring(0, 1).toUpperCase() : 'U';
 
     return (
@@ -39,23 +41,23 @@ export default function GlobalHeader({
                         <Text style={styles.pointsText}>💎 {user.points}</Text>
                     </View>
                     <TouchableOpacity onPress={onRefreshPoints} style={styles.refreshButton}>
-                        <Text style={styles.refreshText}>刷新</Text>
+                        <Text style={styles.refreshText}>{t('header_refresh')}</Text>
                     </TouchableOpacity>
                 </View>
 
                 <TouchableOpacity onPress={onShopPress} style={styles.shopButton}>
                     <Wallet size={20} color="#FF69B4" />
-                    <Text style={styles.shopText}>商店</Text>
+                    <Text style={styles.shopText}>{t('header_shop')}</Text>
                 </TouchableOpacity>
 
-                {/* 测试清空按钮（已隐藏）
+                {/* 隐藏掉右上角的测试清空数据按钮
                 <TouchableOpacity
                     onPress={onClearData}
                     style={styles.clearButton}
                     activeOpacity={0.7}
                 >
                     <Trash2 size={18} color="#FF4D4D" />
-                    <Text style={styles.clearText}>测试清空</Text>
+                    <Text style={styles.clearText}>{t('header_clear')}</Text>
                 </TouchableOpacity>
                 */}
             </View>

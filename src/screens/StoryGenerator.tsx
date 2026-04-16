@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { Sparkles, History as HistoryIcon, Trash2, X, Copy } from 'lucide-react-native';
 import * as Clipboard from 'expo-clipboard';
+import { useTranslation } from 'react-i18next';
 import { apiStory } from '../utils/apiClient';
 import { storage } from '../utils/storage';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -33,6 +34,7 @@ export default function StoryGenerator({
     onRequireTopUp,
     onUpdatePoints
 }: StoryGeneratorProps) {
+    const { t } = useTranslation();
     const [character, setCharacter] = useState('');
     const [plot, setPlot] = useState('');
     const [extra, setExtra] = useState('');
@@ -76,9 +78,9 @@ export default function StoryGenerator({
     const handleGenerate = async () => {
         if (!plot.trim()) {
             if (Platform.OS === 'web') {
-                window.alert('请填写剧情设定');
+                window.alert(t('fill_plot'));
             } else {
-                Alert.alert('提示', '请填写剧情设定');
+                Alert.alert('提示', t('fill_plot'));
             }
             return;
         }
@@ -189,14 +191,14 @@ export default function StoryGenerator({
     };
 
     const handleCopy = async (content: string) => {
-        const prefix = user.storyCopyPrefix || '故事生成产品体验：***';
+        const prefix = user.storyCopyPrefix || '产品体验：***';
         const finalContent = `${prefix}\n\n${content}`;
         await Clipboard.setStringAsync(finalContent);
 
         if (Platform.OS === 'web') {
-            window.alert('已复制到剪贴板');
+            window.alert(t('copied_to_clipboard'));
         } else {
-            Alert.alert('提示', '已复制到剪贴板');
+            Alert.alert('提示', t('copied_to_clipboard'));
         }
     };
 
@@ -210,9 +212,9 @@ export default function StoryGenerator({
 
 
                 <View style={styles.header}>
-                    <Text style={styles.title}>创作历史</Text>
+                    <Text style={styles.title}>{t('history_title')}</Text>
                     <TouchableOpacity onPress={() => setShowHistory(false)}>
-                        <Text style={styles.linkText}>返回创作</Text>
+                        <Text style={styles.linkText}>{t('back_to_create')}</Text>
                     </TouchableOpacity>
                 </View>
                 <FlatList
@@ -246,35 +248,35 @@ export default function StoryGenerator({
                     <View style={styles.modalOverlay}>
                         <View style={styles.detailCard}>
                             <View style={styles.detailHeader}>
-                                <Text style={styles.detailTitle}>故事详情</Text>
+                                <Text style={styles.detailTitle}>{t('story_detail')}</Text>
                                 <TouchableOpacity onPress={() => setSelectedStory(null)}>
                                     <X size={24} color={THEME.COLORS.TEXT_SUB} />
                                 </TouchableOpacity>
                             </View>
                             <ScrollView contentContainerStyle={styles.detailScrollContent}>
                                 <Text style={styles.detailDate}>{selectedStory?.date}</Text>
-                                <Text style={styles.detailLabel}>剧情设定：</Text>
+                                <Text style={styles.detailLabel}>{t('plot_outline')}：</Text>
                                 <Text style={styles.detailPlot}>{selectedStory?.title.replace('...', '')}</Text>
                                 <View style={styles.divider} />
                                 <View style={styles.detailStoryHeader}>
-                                    <Text style={styles.detailContentTitle}>故事正文</Text>
+                                    <Text style={styles.detailContentTitle}>{t('story_body')}</Text>
                                     {!selectedStory?.isMasked && (
                                         <TouchableOpacity
                                             style={styles.copyButtonSmall}
                                             onPress={() => handleCopy(selectedStory?.content)}
                                         >
                                             <Copy size={16} color={THEME.COLORS.PRIMARY} />
-                                            <Text style={styles.copyButtonTextSmall}>复制全文</Text>
+                                            <Text style={styles.copyButtonTextSmall}>{t('copy_full')}</Text>
                                         </TouchableOpacity>
                                     )}
                                 </View>
                                 <Text style={styles.detailContent}>{selectedStory?.content}</Text>
 
                                 <View style={styles.continueSection}>
-                                    <Text style={styles.continueLabel}>想续写的剧情走势 (选填)：</Text>
+                                    <Text style={styles.continueLabel}>{t('continue_label')}</Text>
                                     <TextInput
                                         style={styles.continueInput}
-                                        placeholder="例如：突然天降暴雨..."
+                                        placeholder={t('continue_placeholder')}
                                         maxLength={100}
                                         value={continuePlot}
                                         onChangeText={setContinuePlot}
@@ -284,7 +286,7 @@ export default function StoryGenerator({
                                         onPress={() => handleContinue(selectedStory.content, true)}
                                         disabled={isContinuing}
                                     >
-                                        {isContinuing ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.continueButtonText}>续写故事</Text>}
+                                        {isContinuing ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.continueButtonText}>{t('continue_btn')}</Text>}
                                     </TouchableOpacity>
                                 </View>
                             </ScrollView>
@@ -305,27 +307,27 @@ export default function StoryGenerator({
 
             <ScrollView contentContainerStyle={styles.scrollContent}>
                 <View style={styles.header}>
-                    <Text style={styles.title}>AI 故事创作</Text>
+                    <Text style={styles.title}>{t('story_title')}</Text>
                     <TouchableOpacity onPress={() => setShowHistory(true)}>
                         <HistoryIcon size={24} color="#FF69B4" />
                     </TouchableOpacity>
                 </View>
 
                 <View style={styles.form}>
-                    <Text style={styles.label}>人物设定 (选填)</Text>
+                    <Text style={styles.label}>{t('protagonist_setting')}</Text>
                     <TextInput
                         style={styles.input}
-                        placeholder="例如：男主：林克；女主：塞尔达"
+                        placeholder={t('protagonist_placeholder')}
                         placeholderTextColor="#999"
                         value={character}
                         onChangeText={setCharacter}
                         returnKeyType="next"
                     />
 
-                    <Text style={[styles.label, { color: '#FF69B4' }]}>剧情设定 (必填)</Text>
+                    <Text style={[styles.label, { color: '#FF69B4' }]}>{t('plot_outline')}</Text>
                     <TextInput
                         style={[styles.input, styles.textArea]}
-                        placeholder="描述你想看到的剧情片段..."
+                        placeholder={t('plot_placeholder')}
                         placeholderTextColor="#999"
                         value={plot}
                         onChangeText={setPlot}
@@ -335,10 +337,10 @@ export default function StoryGenerator({
                         textAlignVertical="top"
                     />
 
-                    <Text style={styles.label}>额外要求 (选填)</Text>
+                    <Text style={styles.label}>{t('extra_req')}</Text>
                     <TextInput
                         style={styles.input}
-                        placeholder="例如：大量描写女主美貌"
+                        placeholder={t('extra_req_placeholder')}
                         placeholderTextColor="#999"
                         value={extra}
                         onChangeText={setExtra}
@@ -355,7 +357,7 @@ export default function StoryGenerator({
                         ) : (
                             <>
                                 <Sparkles size={20} color="#fff" />
-                                <Text style={styles.buttonText}>开始创作</Text>
+                                <Text style={styles.buttonText}>{t('generate_btn')}</Text>
                             </>
                         )}
                     </TouchableOpacity>
@@ -364,10 +366,10 @@ export default function StoryGenerator({
                 {currentStory ? (
                     <View style={styles.resultContainer}>
                         <View style={styles.resultHeader}>
-                            <Text style={styles.resultTitle}>生成结果：</Text>
+                            <Text style={styles.resultTitle}>{t('generate_result')}</Text>
                             {isMaskedStory && (
                                 <TouchableOpacity style={styles.maskedBadge} onPress={onRequireTopUp}>
-                                    <Text style={styles.maskedBadgeText}>预览版 - 充值解锁全文</Text>
+                                    <Text style={styles.maskedBadgeText}>{t('preview_badge')}</Text>
                                 </TouchableOpacity>
                             )}
                         </View>
@@ -377,22 +379,22 @@ export default function StoryGenerator({
                                 onPress={() => handleCopy(currentStory)}
                             >
                                 <Copy size={18} color={THEME.COLORS.PRIMARY} />
-                                <Text style={styles.copyButtonText}>复制全文</Text>
+                                <Text style={styles.copyButtonText}>{t('copy_full')}</Text>
                             </TouchableOpacity>
                         )}
                         <Text style={styles.resultContent}>{currentStory}</Text>
 
                         {isMaskedStory && (
                             <TouchableOpacity style={styles.unlockButtonInStory} onPress={onRequireTopUp}>
-                                <Text style={styles.unlockButtonText}>查看完整未打码内容 (需充值)</Text>
+                                <Text style={styles.unlockButtonText}>{t('unlock_btn')}</Text>
                             </TouchableOpacity>
                         )}
 
                         <View style={[styles.continueSection, { marginTop: 20, borderTopWidth: 1, borderTopColor: '#eee', paddingTop: 15 }]}>
-                            <Text style={styles.continueLabel}>续写这段故事：</Text>
+                            <Text style={styles.continueLabel}>{t('continue_label')}</Text>
                             <TextInput
                                 style={styles.continueInput}
-                                placeholder="输入想要的剧情走势..."
+                                placeholder={t('continue_placeholder')}
                                 maxLength={100}
                                 value={continuePlot}
                                 onChangeText={setContinuePlot}
@@ -402,7 +404,7 @@ export default function StoryGenerator({
                                 onPress={() => handleContinue(currentStory, false)}
                                 disabled={isContinuing}
                             >
-                                {isContinuing ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.continueButtonText}>续写故事</Text>}
+                                {isContinuing ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.continueButtonText}>{t('continue_btn')}</Text>}
                             </TouchableOpacity>
                         </View>
                     </View>

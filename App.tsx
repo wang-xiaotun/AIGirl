@@ -1,5 +1,7 @@
 import 'react-native-get-random-values';
+import './src/utils/i18n';
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   StyleSheet,
   View,
@@ -43,6 +45,7 @@ const INITIAL_USER: User = {
 };
 
 export default function App() {
+  const { t, i18n } = useTranslation();
   const [user, setUser] = useState<User>(INITIAL_USER);
   const [activeTab, setActiveTab] = useState<'girls' | 'story'>('girls');
   const [selectedGF, setSelectedGF] = useState<GF | null>(null);
@@ -53,7 +56,7 @@ export default function App() {
 
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessingPay, setIsProcessingPay] = useState(false);
-  const [payType, setPayType] = useState<'alipay' | 'wechat'>('alipay');
+  const [qrData, setQrData] = useState<string | null>(null);
 
   useEffect(() => {
     loadUserData();
@@ -157,13 +160,19 @@ export default function App() {
     if (isProcessingPay) return;
     setIsProcessingPay(true);
     try {
-      console.log('Initiating topup...', amount, points, payType);
-      const res = await apiCreateOrder(user.userId, amount, points, payType);
+      console.log('Initiating topup...', amount, points);
+      const res = await apiCreateOrder(user.userId, amount, points);
       console.log('Topup res:', res);
 
       if (res.code === 0 && res.data && res.data.pay_url) {
         setShowShopModal(false);
         const urlToOpen = res.data.pay_url;
+
+        // 如果不是 http/https 链接，说明网关返回的是原始扫码串（如 QRIS 字符串），需单独展示二维码
+        if (!urlToOpen.startsWith('http')) {
+          setQrData(urlToOpen);
+          return;
+        }
 
         // 针对不同平台处理唤起/跳转机制
         if (Platform.OS === 'web') {
@@ -277,14 +286,14 @@ export default function App() {
                 onPress={() => setActiveTab('girls')}
               >
                 <Heart size={24} color={activeTab === 'girls' ? THEME.COLORS.PRIMARY : THEME.COLORS.TEXT_SUB} />
-                <Text style={[styles.tabText, activeTab === 'girls' && styles.activeTabText]}>虚拟女友</Text>
+                <Text style={[styles.tabText, activeTab === 'girls' && styles.activeTabText]}>{t('tab_girls')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.tab, activeTab === 'story' && styles.activeTab]}
                 onPress={() => setActiveTab('story')}
               >
                 <BookOpen size={24} color={activeTab === 'story' ? THEME.COLORS.PRIMARY : THEME.COLORS.TEXT_SUB} />
-                <Text style={[styles.tabText, activeTab === 'story' && styles.activeTabText]}>故事生成</Text>
+                <Text style={[styles.tabText, activeTab === 'story' && styles.activeTabText]}>{t('tab_story')}</Text>
               </TouchableOpacity>
             </View>
           </SafeAreaView>
@@ -298,63 +307,81 @@ export default function App() {
         <Modal visible={showShopModal} animationType="slide" transparent>
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>点数商店</Text>
-              <Text style={styles.modalSubTitle}>任意充值即可解锁全部女友</Text>
-
-              <View style={styles.paySelector}>
-                <TouchableOpacity
-                  style={[styles.payOption, payType === 'alipay' && styles.payOptionActiveAlipay]}
-                  onPress={() => setPayType('alipay')}
-                >
-                  <Text style={[styles.payOptionText, payType === 'alipay' && styles.payOptionTextActive]}>支付宝</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.payOption, payType === 'wechat' && styles.payOptionActiveWechat]}
-                  onPress={() => setPayType('wechat')}
-                >
-                  <Text style={[styles.payOptionText, payType === 'wechat' && styles.payOptionTextActive]}>微信</Text>
-                </TouchableOpacity>
-              </View>
+              <Text style={styles.modalTitle}>{t('shop_title')}</Text>
+              <Text style={styles.modalSubTitle}>{t('shop_subtitle')}</Text>
 
               {isProcessingPay ? (
                 <View style={{ padding: 40, alignItems: 'center' }}>
-                  <Text style={{ color: THEME.COLORS.PRIMARY, marginBottom: 10 }}>正在生成订单...</Text>
+                  <Text style={{ color: THEME.COLORS.PRIMARY, marginBottom: 10 }}>{t('generating_order')}</Text>
                   {/* 实际应用中这里可以加 ActivityIndicator */}
                 </View>
               ) : (
                 <>
-                  <TouchableOpacity style={styles.tier} onPress={() => handleTopUp(30, 50000)}>
+                  <TouchableOpacity style={styles.tier} onPress={() => handleTopUp(66000, 50000)}>
                     <View>
-                      <Text style={styles.tierTitle}>💎 50,000 点</Text>
-                      <Text style={styles.tierCaption}>约 5 万字对话</Text>
+                      <Text style={styles.tierTitle}>{t('tier_50k')}</Text>
+                      <Text style={styles.tierCaption}>{t('words_50k')}</Text>
                     </View>
-                    <Text style={styles.tierPrice}>￥30</Text>
+                    <Text style={styles.tierPrice}>Rp 66.000</Text>
                   </TouchableOpacity>
 
-                  <TouchableOpacity style={styles.tier} onPress={() => handleTopUp(70, 200000)}>
+                  <TouchableOpacity style={styles.tier} onPress={() => handleTopUp(154000, 200000)}>
                     <View>
-                      <Text style={styles.tierTitle}>💎 200,000 点</Text>
-                      <Text style={styles.tierCaption}>约 20 万字对话</Text>
+                      <Text style={styles.tierTitle}>{t('tier_200k')}</Text>
+                      <Text style={styles.tierCaption}>{t('words_200k')}</Text>
                     </View>
-                    <Text style={styles.tierPrice}>￥70</Text>
+                    <Text style={styles.tierPrice}>Rp 154.000</Text>
                   </TouchableOpacity>
 
-                  <TouchableOpacity style={[styles.tier, styles.premiumTier]} onPress={() => handleTopUp(99, 400000)}>
+                  <TouchableOpacity style={[styles.tier, styles.premiumTier]} onPress={() => handleTopUp(218000, 400000)}>
                     <View>
                       <View style={styles.bestValue}>
-                        <Text style={styles.bestValueText}>最超值</Text>
+                        <Text style={styles.bestValueText}>{t('best_value')}</Text>
                       </View>
-                      <Text style={styles.tierTitle}>💎 400,000 点</Text>
-                      <Text style={styles.tierCaption}>约 40 万字对话</Text>
+                      <Text style={styles.tierTitle}>{t('tier_400k')}</Text>
+                      <Text style={styles.tierCaption}>{t('words_400k')}</Text>
                     </View>
-                    <Text style={styles.tierPrice}>￥99</Text>
+                    <Text style={styles.tierPrice}>Rp 218.000</Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity onPress={() => setShowShopModal(false)} style={styles.closeButton}>
-                    <Text style={styles.closeButtonText}>稍后再说</Text>
+                    <Text style={styles.closeButtonText}>{t('maybe_later')}</Text>
                   </TouchableOpacity>
                 </>
               )}
+            </View>
+          </View>
+        </Modal>
+
+        {/* QR Code Modal for QRIS payment */}
+        <Modal visible={!!qrData} animationType="fade" transparent>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>{t('scan_to_pay', '请扫码付款')}</Text>
+              <Text style={styles.modalSubTitle}>{t('qris_tip', '请使用支持 QRIS 的印尼钱包 APP 扫码')}</Text>
+              
+              {qrData && (
+                <View style={{ padding: 10, backgroundColor: '#fff', borderRadius: 10, marginBottom: 20 }}>
+                  <Image 
+                    source={{ uri: `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(qrData)}` }} 
+                    style={{ width: 250, height: 250 }} 
+                  />
+                </View>
+              )}
+              
+              <TouchableOpacity
+                style={styles.modalButton}
+                onPress={() => {
+                  setQrData(null);
+                  loadUserData();
+                }}
+              >
+                <Text style={styles.modalButtonText}>{t('payment_done', '已完成扫描支付')}</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity onPress={() => setQrData(null)} style={styles.closeButton}>
+                <Text style={styles.closeButtonText}>{t('cancel')}</Text>
+              </TouchableOpacity>
             </View>
           </View>
         </Modal>
@@ -367,27 +394,37 @@ export default function App() {
                 <UserIcon color="#fff" size={40} />
               </View>
               <Text style={[styles.modalTitle, { marginTop: 15, marginBottom: 5, fontSize: 16 }]}>ID: {user.userId}</Text>
-              <Text style={{ color: '#666', marginBottom: 20 }}>当前点数: 💎 {user.points}</Text>
+              <Text style={{ color: '#666', marginBottom: 20 }}>{t('current_points')} 💎 {user.points}</Text>
 
               <TouchableOpacity
-                style={[styles.modalButton, { backgroundColor: '#F3F4F6' }]}
+                style={[styles.modalButton, { backgroundColor: '#E0F7FA' }]}
+                onPress={() => {
+                   const nextLang = i18n.language.startsWith('id') ? 'en' : i18n.language.startsWith('en') ? 'zh' : 'id';
+                   i18n.changeLanguage(nextLang);
+                }}
+              >
+                <Text style={[styles.modalButtonText, { color: '#006064' }]}>{t('language_switch')}: {t('language_name')}</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.modalButton, { backgroundColor: '#F3F4F6', marginTop: 10 }]}
                 onPress={() => setShowAgreementModal(true)}
               >
-                <Text style={[styles.modalButtonText, { color: '#666' }]}>用户协议</Text>
+                <Text style={[styles.modalButtonText, { color: '#666' }]}>{t('user_agreement')}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={[styles.modalButton, { backgroundColor: '#F3F4F6', marginTop: 10 }]}
                 onPress={() => setShowProfileModal(false)}
               >
-                <Text style={[styles.modalButtonText, { color: '#333' }]}>返回主页</Text>
+                <Text style={[styles.modalButtonText, { color: '#333' }]}>{t('back_to_home')}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={[styles.modalButton, { backgroundColor: '#FFF5F5', marginTop: 10 }]}
                 onPress={handleClearHistory}
               >
-                <Text style={[styles.modalButtonText, { color: '#FF4D4D' }]}>清空本地聊天记录</Text>
+                <Text style={[styles.modalButtonText, { color: '#FF4D4D' }]}>{t('clear_chat_history')}</Text>
               </TouchableOpacity>
 
               {/* 仅浏览器（非 APK）显示"添加桌面快捷方式"入口 */}
@@ -396,7 +433,7 @@ export default function App() {
                   style={[styles.modalButton, { backgroundColor: '#F0F4FF', marginTop: 10 }]}
                   onPress={() => { setShowProfileModal(false); setShowPwaGuide(true); }}
                 >
-                  <Text style={[styles.modalButtonText, { color: '#4F6EF7' }]}>📲 添加桌面快捷方式</Text>
+                  <Text style={[styles.modalButtonText, { color: '#4F6EF7' }]}>{t('add_to_home')}</Text>
                 </TouchableOpacity>
               )}
 
@@ -412,24 +449,17 @@ export default function App() {
         <Modal visible={showAgreementModal} animationType="fade" transparent>
           <View style={styles.modalOverlay}>
             <View style={[styles.modalContent, { maxHeight: '80%' }]}>
-              <Text style={styles.modalTitle}>用户协议</Text>
+              <Text style={styles.modalTitle}>{t('user_agreement')}</Text>
               <ScrollView style={{ width: '100%', marginBottom: 20 }}>
                 <Text style={{ fontSize: 14, color: '#4B5563', lineHeight: 22 }}>
-                  本网站不提供任何内容，仅根据用户输入的提示词生成输出，用户需对其生成的内容承担全部责任。{"\n\n"}
-                  我们对涉及未成年人的内容实行零容忍政策，一旦发现将立即封号处理。{"\n"}
-                  此外，如果您未满 18 岁，请不要使用本网站。{"\n\n"}
-                  使用本网站即表示您理解并同意这些条款。{"\n\n"}
-                  <Text style={{ fontWeight: 'bold', color: THEME.COLORS.PRIMARY }}>
-                    注意：服务器不保存您的输入/输出，历史记录仅保存在本地。
-                  </Text>{"\n"}
-                  换设备、或清除本地设备数据 都会导致记录丢失。
+                  {t('agreement_text_1')}
                 </Text>
               </ScrollView>
               <TouchableOpacity
                 style={styles.modalButton}
                 onPress={() => setShowAgreementModal(false)}
               >
-                <Text style={styles.modalButtonText}>我已了解并同意</Text>
+                <Text style={styles.modalButtonText}>{t('i_understand_agree')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -586,46 +616,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
-  },
-  paySelector: {
-    flexDirection: 'row',
-    backgroundColor: '#F3F4F6',
-    borderRadius: 12,
-    padding: 4,
-    width: '100%',
-    marginBottom: 20,
-  },
-  payOption: {
-    flex: 1,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 10,
-  },
-  payOptionActiveAlipay: {
-    backgroundColor: '#00A1E9',
-    elevation: 2,
-    shadowColor: '#00A1E9',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-  },
-  payOptionActiveWechat: {
-    backgroundColor: '#07C160',
-    elevation: 2,
-    shadowColor: '#07C160',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-  },
-  payOptionText: {
-    fontSize: 14,
-    color: '#666',
-    fontWeight: '500',
-  },
-  payOptionTextActive: {
-    color: '#fff',
-    fontWeight: 'bold',
   },
   versionText: {
     marginTop: 20,

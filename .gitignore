@@ -45,3 +45,4 @@ MyDoc/
 supabase/
 .vscode/
 .temp/
+.vercel
